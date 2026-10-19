@@ -1,6 +1,22 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Alert, Button, Card, ConfigProvider, Modal, Progress, Space, Tag, Typography } from 'antd'
-import zhCN from 'antd/locale/zh_CN'
+import { CircleAlert, CircleCheck, Download, Info, LoaderCircle, RefreshCw } from 'lucide-react'
+import { Alert, AlertDescription, AlertTitle } from '@renderer/components/ui/alert'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger
+} from '@renderer/components/ui/alert-dialog'
+import { Badge } from '@renderer/components/ui/badge'
+import { Button } from '@renderer/components/ui/button'
+import { Card, CardContent, CardFooter, CardHeader } from '@renderer/components/ui/card'
+import { Progress } from '@renderer/components/ui/progress'
+
 import type { UpdateState, UpdateStatus } from '../../shared/updater'
 
 // 展示文案与业务状态一一对应，新增状态时 TypeScript 会提示补齐文案。
@@ -81,159 +97,184 @@ function App(): React.JSX.Element {
     status === 'available' || (status === 'error' && state?.failedAction === 'download')
   const progress = state?.progress
 
+  const downloadPercent = Math.min(100, Math.max(0, Number((progress?.percent || 0).toFixed(1))))
+
   return (
-    <ConfigProvider
-      locale={zhCN}
-      theme={{
-        token: {
-          colorPrimary: '#2563eb',
-          borderRadius: 12,
-          fontFamily: "'Segoe UI', 'Microsoft YaHei', sans-serif"
-        }
-      }}
-    >
-      <main className="update-page">
-        <header className="page-header">
-          <div className="brand">
-            <span className="brand-mark">e</span>
-            <Typography.Text strong>ebrower</Typography.Text>
-          </div>
-          <Tag bordered={false}>GitHub Releases</Tag>
-        </header>
-        <section className="update-content">
-          <Typography.Text className="eyebrow">应用设置</Typography.Text>
-          <Typography.Title level={1}>软件更新</Typography.Title>
-          <Typography.Paragraph type="secondary" className="page-description">
-            检查新版本，获取最新功能与修复。
-          </Typography.Paragraph>
-          <Card className="update-card">
-            <div className="version-row">
-              <div>
-                <Typography.Text type="secondary">当前版本</Typography.Text>
-                <Typography.Title level={2} className="version-number">
-                  {state ? `v${state.currentVersion}` : '—'}
-                </Typography.Title>
+    <main className="min-h-screen">
+      <header className="flex h-[76px] items-center justify-between border-b bg-card px-5 sm:px-10">
+        <div className="flex items-center gap-3 text-lg font-semibold">
+          <span className="grid size-[34px] place-items-center rounded-[10px] bg-primary text-[25px] font-bold text-primary-foreground">
+            e
+          </span>
+          <span>ebrower</span>
+        </div>
+        <Badge variant="secondary">GitHub Releases</Badge>
+      </header>
+      <section className="mx-auto max-w-[720px] px-4 py-8 sm:px-7 sm:py-12">
+        <p className="text-xs tracking-[2px] text-muted-foreground">应用设置</p>
+        <h1 className="mt-2.5 mb-2 text-[32px] font-semibold tracking-tight">软件更新</h1>
+        <p className="mb-7 text-sm text-muted-foreground">检查新版本，获取最新功能与修复。</p>
+        <Card className="gap-0 shadow-[0_8px_28px_#17243a05]">
+          <CardHeader className="flex flex-row items-center justify-between gap-4">
+            <div>
+              <p className="text-sm text-muted-foreground">当前版本</p>
+              <h2 className="mt-1.5 text-3xl font-semibold">
+                {state ? `v${state.currentVersion}` : '—'}
+              </h2>
+            </div>
+            <Badge
+              variant={status === 'error' ? 'destructive' : 'secondary'}
+              className={
+                status === 'not-available'
+                  ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300'
+                  : undefined
+              }
+            >
+              {status ? statusLabels[status] : '正在连接'}
+            </Badge>
+          </CardHeader>
+          <CardContent className="mt-6 grid gap-4 [overflow-wrap:anywhere]" aria-live="polite">
+            {connectionError && (
+              <Alert variant="destructive">
+                <CircleAlert />
+                <AlertTitle className="line-clamp-none">{connectionError}</AlertTitle>
+              </Alert>
+            )}
+            {state?.message && (
+              <Alert variant={status === 'error' ? 'destructive' : 'default'}>
+                {status === 'error' ? <CircleAlert /> : <Info />}
+                <AlertTitle>{status === 'error' ? '暂时无法完成更新' : '更新提示'}</AlertTitle>
+                <AlertDescription>{state.message}</AlertDescription>
+              </Alert>
+            )}
+            {status === 'idle' && (
+              <p className="text-sm text-muted-foreground">点击下方按钮检查可用更新。</p>
+            )}
+            {status === 'checking' && (
+              <p className="flex items-center gap-2 text-sm">
+                <LoaderCircle className="size-4 animate-spin" aria-hidden="true" />
+                正在查询 GitHub Releases…
+              </p>
+            )}
+            {status === 'not-available' && (
+              <Alert className="border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-200">
+                <CircleCheck />
+                <AlertTitle>当前已是最新版本。</AlertTitle>
+              </Alert>
+            )}
+            {state?.latestVersion && (
+              <div className="rounded-lg bg-muted p-4">
+                <p className="text-sm font-semibold">新版本 v{state.latestVersion}</p>
+                {state.releaseNotes && (
+                  <p className="mt-2.5 max-h-[180px] overflow-y-auto text-[13px] leading-relaxed whitespace-pre-wrap text-muted-foreground">
+                    {state.releaseNotes}
+                  </p>
+                )}
               </div>
-              <Tag
-                color={
-                  status === 'error' ? 'error' : status === 'not-available' ? 'success' : 'blue'
-                }
-              >
-                {status ? statusLabels[status] : '正在连接'}
-              </Tag>
-            </div>
-            <div className="update-details" aria-live="polite">
-              {connectionError && <Alert type="error" showIcon title={connectionError} />}
-              {state?.message && (
-                <Alert
-                  type={status === 'error' ? 'error' : 'info'}
-                  showIcon
-                  title={status === 'error' ? '暂时无法完成更新' : '更新提示'}
-                  description={state.message}
-                />
-              )}
-              {status === 'idle' && (
-                <Typography.Paragraph type="secondary">
-                  点击下方按钮检查可用更新。
-                </Typography.Paragraph>
-              )}
-              {status === 'checking' && (
-                <Typography.Paragraph>正在查询 GitHub Releases…</Typography.Paragraph>
-              )}
-              {status === 'not-available' && (
-                <Alert type="success" showIcon title="当前已是最新版本。" />
-              )}
-              {state?.latestVersion && (
-                <div className="release-info">
-                  <Typography.Text strong>新版本 v{state.latestVersion}</Typography.Text>
-                  {state.releaseNotes && <p className="release-notes">{state.releaseNotes}</p>}
+            )}
+            {status === 'downloading' && (
+              <div className="grid gap-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span>下载进度</span>
+                  <span className="tabular-nums">{downloadPercent}%</span>
                 </div>
-              )}
-              {status === 'downloading' && (
-                <div>
-                  <Progress percent={Number((progress?.percent || 0).toFixed(1))} />
-                  <div className="download-metrics">
-                    <span>
-                      {progress
-                        ? `${formatBytes(progress.transferred)} / ${formatBytes(progress.total)}`
-                        : '正在准备下载…'}
-                    </span>
-                    <span>{progress ? `${formatBytes(progress.bytesPerSecond)}/s` : ''}</span>
-                  </div>
+                <Progress value={downloadPercent} aria-label="更新下载进度" />
+                <div className="flex justify-between gap-3 text-xs text-muted-foreground">
+                  <span>
+                    {progress
+                      ? `${formatBytes(progress.transferred)} / ${formatBytes(progress.total)}`
+                      : '正在准备下载…'}
+                  </span>
+                  <span>{progress ? `${formatBytes(progress.bytesPerSecond)}/s` : ''}</span>
                 </div>
+              </div>
+            )}
+            {status === 'downloaded' && (
+              <Alert className="border-emerald-200 dark:border-emerald-900">
+                <CircleCheck className="text-emerald-600" />
+                <AlertTitle>更新已准备就绪</AlertTitle>
+                <AlertDescription>
+                  {state?.canInstall
+                    ? '保存当前工作后，点击重启并安装以完成更新。'
+                    : '开发模式可验证检查与下载，请使用安装版验证安装流程。'}
+                </AlertDescription>
+              </Alert>
+            )}
+            {status === 'installing' && (
+              <Alert>
+                <Info />
+                <AlertTitle>应用即将退出并安装更新…</AlertTitle>
+              </Alert>
+            )}
+          </CardContent>
+          <CardFooter className="mt-7 flex-wrap gap-2">
+            <Button
+              variant={canDownload || status === 'downloaded' ? 'outline' : 'default'}
+              disabled={!canCheck}
+              aria-busy={status === 'checking' || pending === 'check'}
+              onClick={() => void run('check')}
+            >
+              {status === 'checking' || pending === 'check' ? (
+                <LoaderCircle className="animate-spin" aria-hidden="true" />
+              ) : (
+                <RefreshCw aria-hidden="true" />
               )}
-              {status === 'downloaded' && (
-                <Alert
-                  type="success"
-                  showIcon
-                  title="更新已准备就绪"
-                  description={
-                    state?.canInstall
-                      ? '保存当前工作后，点击重启并安装以完成更新。'
-                      : '开发模式可验证检查与下载，请使用安装版验证安装流程。'
-                  }
-                />
-              )}
-              {status === 'installing' && (
-                <Alert type="info" showIcon title="应用即将退出并安装更新…" />
-              )}
-            </div>
-            <Space wrap className="update-actions">
+              检查更新
+            </Button>
+            {(canDownload || status === 'downloading') && (
               <Button
-                type={canDownload || status === 'downloaded' ? 'default' : 'primary'}
-                disabled={!canCheck}
-                loading={status === 'checking'}
-                onClick={() => void run('check')}
+                disabled={busy}
+                aria-busy={status === 'downloading' || pending === 'download'}
+                onClick={() => void run('download')}
               >
-                检查更新
+                {status === 'downloading' || pending === 'download' ? (
+                  <LoaderCircle className="animate-spin" aria-hidden="true" />
+                ) : (
+                  <Download aria-hidden="true" />
+                )}
+                {status === 'downloading'
+                  ? '正在下载'
+                  : state?.failedAction === 'download'
+                    ? '重新下载'
+                    : '下载更新'}
               </Button>
-              {(canDownload || status === 'downloading') && (
-                <Button
-                  type="primary"
-                  disabled={busy}
-                  loading={status === 'downloading'}
-                  onClick={() => void run('download')}
-                >
-                  {status === 'downloading'
-                    ? '正在下载'
-                    : state?.failedAction === 'download'
-                      ? '重新下载'
-                      : '下载更新'}
-                </Button>
-              )}
+            )}
+            <AlertDialog open={confirmInstall} onOpenChange={setConfirmInstall}>
               {(status === 'downloaded' || status === 'installing') && (
-                <Button
-                  type="primary"
-                  disabled={busy || !state?.canInstall}
-                  loading={status === 'installing'}
-                  onClick={() => setConfirmInstall(true)}
-                >
-                  重启并安装
-                </Button>
+                <AlertDialogTrigger asChild>
+                  <Button disabled={busy || !state?.canInstall} aria-busy={status === 'installing'}>
+                    {status === 'installing' && (
+                      <LoaderCircle className="animate-spin" aria-hidden="true" />
+                    )}
+                    重启并安装
+                  </Button>
+                </AlertDialogTrigger>
               )}
-            </Space>
-          </Card>
-          <Typography.Paragraph type="secondary" className="update-footer">
-            更新由 GitHub Releases 提供。下载和重启安装均由你确认。
-          </Typography.Paragraph>
-        </section>
-        <Modal
-          title="重启并安装更新"
-          open={confirmInstall}
-          okText="重启并安装"
-          cancelText="稍后"
-          onCancel={() => setConfirmInstall(false)}
-          onOk={() => {
-            setConfirmInstall(false)
-            void run('install')
-          }}
-        >
-          <Typography.Paragraph>
-            应用将关闭并安装 v{state?.latestVersion}。请先保存当前工作。
-          </Typography.Paragraph>
-        </Modal>
-      </main>
-    </ConfigProvider>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>重启并安装更新</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    应用将关闭并安装 v{state?.latestVersion}。请先保存当前工作。
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>稍后</AlertDialogCancel>
+                  <AlertDialogAction
+                    disabled={busy || !state?.canInstall}
+                    onClick={() => void run('install')}
+                  >
+                    重启并安装
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </CardFooter>
+        </Card>
+        <p className="mt-5 text-xs leading-relaxed text-muted-foreground">
+          更新由 GitHub Releases 提供。下载和重启安装均由你确认。
+        </p>
+      </section>
+    </main>
   )
 }
 

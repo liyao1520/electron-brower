@@ -153,6 +153,17 @@ test('更新器被禁用返回 null 时明确显示错误', async () => {
   assert.equal((await service.check()).status, 'error')
 })
 
+test('缺少 GitHub 发布或更新文件时显示可操作的提示', async () => {
+  const { service, updater } = setup()
+  updater.checkForUpdates = async () => {
+    throw new Error('404 \nNot Found')
+  }
+  const state = await service.check()
+  assert.equal(state.status, 'error')
+  assert.match(state.message, /发布版本或更新文件/)
+  assert.equal(state.failedAction, 'check')
+})
+
 test('安装异常会返回错误状态', async () => {
   const { service, updater } = setup()
   await service.check()

@@ -12,8 +12,8 @@
 ## 2. 当前基础与架构
 
 - 已创建 electron-vite + React + TypeScript 项目，使用 pnpm。
-- 已接入 electron-builder、electron-updater，提供 antd 更新页面与手动检查、下载和重启安装流程。
-- 当前版本为 `1.0.0`，更新源为 GitHub Releases（`liyao1520/electron-brower`），appId 为 `com.liyao1520.ebrower`。
+- 已接入 electron-builder、electron-updater，提供 shadcn/ui 更新页面与手动检查、下载和重启安装流程。
+- 当前版本为 `1.0.1`，更新源为 GitHub Releases（`liyao1520/electron-brower`），appId 为 `com.liyao1520.ebrower`。
 - `BrowserWindow` 承载本地界面，每个网页标签使用一个 `WebContentsView`。
 - 主进程负责窗口、标签、会话、权限、下载、持久化、更新与自动化。
 - preload 只向本地界面暴露必要的业务接口；renderer 负责显示状态与发出操作请求。

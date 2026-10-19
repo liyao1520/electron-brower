@@ -34,7 +34,7 @@ git tag v1.0.1
 git push origin v1.0.1
 ```
 
-使用 master 分支时替换示例中的 main。当前版本为 1.0.0，首次发布可直接打 `v1.0.0` 标签。
+使用 master 分支时替换示例中的 main。当前版本以 `package.json` 为准，发布标签必须与它完全对应；已发布版本的修复需提高版本号后重新发布。
 
 - 正式版：`1.0.1` 对应 `v1.0.1`，生成 `latest.yml`。
 - 预发布：如 `1.1.0-beta.1` 对应 `v1.1.0-beta.1`，生成对应渠道元数据并标记为 prerelease；同样支持 alpha、rc。

@@ -81,11 +81,16 @@ export class UpdateService {
 
   /** 错误事件和异步调用失败统一进入错误状态，保留失败阶段以支持重试。 */
   private fail(error: unknown): void {
-    const detail = error instanceof Error ? error.message.split('\n')[0].slice(0, 300) : '未知错误'
+    const detail =
+      error instanceof Error ? error.message.split('\n')[0].trim().slice(0, 300) : '未知错误'
+    // 新仓库尚未发布 Release 或缺少元数据时，GitHub 通常返回 404。
+    const message = detail.startsWith('404')
+      ? '尚未找到可用的发布版本或更新文件，请确认发布完成后重试。'
+      : `更新失败：${detail}`
     this.patch({
       status: 'error',
       failedAction: this.action,
-      message: `更新失败：${detail}`
+      message
     })
   }
 

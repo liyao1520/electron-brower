@@ -1,0 +1,27 @@
+import * as React from 'react'
+import { cn } from '@renderer/lib/utils'
+import { Progress as ProgressPrimitive } from 'radix-ui'
+
+/** 保持进度数值与 Radix 无障碍属性同步，视觉进度条使用同一数值。 */
+function Progress({
+  className,
+  value,
+  ...props
+}: React.ComponentProps<typeof ProgressPrimitive.Root>): React.JSX.Element {
+  return (
+    <ProgressPrimitive.Root
+      data-slot="progress"
+      value={value}
+      className={cn('relative h-2 w-full overflow-hidden rounded-full bg-primary/20', className)}
+      {...props}
+    >
+      <ProgressPrimitive.Indicator
+        data-slot="progress-indicator"
+        className="h-full w-full flex-1 bg-primary transition-all"
+        style={{ transform: `translateX(-${100 - (value || 0)}%)` }}
+      />
+    </ProgressPrimitive.Root>
+  )
+}
+
+export { Progress }

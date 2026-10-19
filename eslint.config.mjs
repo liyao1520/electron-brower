@@ -30,6 +30,16 @@ export default defineConfig(
   },
   eslintConfigPrettier,
   {
+    files: ['src/renderer/src/components/ui/**/*.{ts,tsx}'],
+    rules: {
+      // shadcn/ui 同时导出组件和样式变体，供其他组件组合复用。
+      'react-refresh/only-export-components': [
+        'error',
+        { allowConstantExport: true, allowExportNames: ['buttonVariants', 'badgeVariants'] }
+      ]
+    }
+  },
+  {
     files: ['tests/**/*.mjs'],
     rules: { '@typescript-eslint/explicit-function-return-type': 'off' }
   }

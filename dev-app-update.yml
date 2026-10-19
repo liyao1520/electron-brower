@@ -1,0 +1,4 @@
+provider: github
+owner: liyao1520
+repo: electron-brower
+updaterCacheDirName: ebrower-updater

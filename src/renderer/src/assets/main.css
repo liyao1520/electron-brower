@@ -1,0 +1,121 @@
+@import 'antd/dist/reset.css';
+
+:root {
+  font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+  color: #17243a;
+  background: #f5f7fb;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  min-width: 340px;
+}
+.update-page {
+  min-height: 100vh;
+}
+.page-header {
+  height: 76px;
+  padding: 0 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #fff;
+  border-bottom: 1px solid #e8edf4;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 18px;
+}
+.brand-mark {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  background: #2563eb;
+  color: #fff;
+  border-radius: 10px;
+  font-size: 25px;
+  font-weight: 700;
+}
+.update-content {
+  max-width: 720px;
+  padding: 48px 28px;
+  margin: 0 auto;
+}
+.eyebrow {
+  color: #64748b;
+  font-size: 12px;
+  letter-spacing: 2px;
+}
+.update-content h1.ant-typography {
+  margin: 10px 0 8px;
+  font-size: 32px;
+}
+.page-description {
+  margin-bottom: 28px;
+}
+.update-card {
+  box-shadow: 0 8px 28px #17243a05;
+}
+.version-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.update-page .version-number.ant-typography {
+  margin: 6px 0 0;
+  font-size: 30px;
+}
+.update-details {
+  display: grid;
+  gap: 16px;
+  margin-top: 24px;
+  overflow-wrap: anywhere;
+}
+.update-details .ant-typography {
+  margin-bottom: 0;
+}
+.release-info {
+  padding: 16px;
+  border-radius: 8px;
+  background: #f7f9fc;
+}
+.release-notes {
+  white-space: pre-wrap;
+  max-height: 180px;
+  overflow-y: auto;
+  font-size: 13px;
+  line-height: 1.7;
+  color: #526078;
+  margin: 10px 0 0;
+}
+.download-metrics {
+  display: flex;
+  justify-content: space-between;
+  color: #64748b;
+  font-size: 12px;
+}
+.update-actions {
+  margin-top: 28px;
+}
+.update-footer {
+  margin: 20px 0 0;
+  font-size: 12px;
+  line-height: 1.8;
+}
+@media (max-width: 480px) {
+  .page-header {
+    padding: 0 20px;
+  }
+  .update-content {
+    padding: 32px 16px;
+  }
+}

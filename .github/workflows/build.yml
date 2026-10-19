@@ -1,0 +1,79 @@
+name: Build Windows
+
+on:
+  workflow_call:
+    inputs:
+      release:
+        description: Require a version tag matching package.json
+        type: boolean
+        default: false
+    secrets:
+      WIN_CSC_LINK:
+        required: false
+      WIN_CSC_KEY_PASSWORD:
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Check and package Windows x64
+    runs-on: windows-latest
+    timeout-minutes: 30
+    env:
+      CI: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Prepare GitHub update configuration
+        id: configure
+        run: node .github/scripts/prepare-build.mjs
+        env:
+          REQUIRE_RELEASE_TAG: ${{ inputs.release }}
+
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Typecheck and build
+        run: pnpm build
+
+      - name: Test updater lifecycle
+        run: pnpm test
+
+      - name: Package Windows installer
+        run: pnpm exec electron-builder --win nsis --x64 --publish never --config "${{ steps.configure.outputs.config-path }}"
+        env:
+          WIN_CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
+          WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
+
+      - name: Collect release assets
+        id: assets
+        run: node .github/scripts/collect-release.mjs
+        env:
+          UPDATE_CHANNEL: ${{ steps.configure.outputs.channel }}
+
+      - name: Upload installer and update metadata
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: windows-x64
+          path: ${{ steps.assets.outputs.path }}
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 14

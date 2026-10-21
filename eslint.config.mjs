@@ -38,9 +38,5 @@ export default defineConfig(
         { allowConstantExport: true, allowExportNames: ['buttonVariants', 'badgeVariants'] }
       ]
     }
-  },
-  {
-    files: ['tests/**/*.mjs'],
-    rules: { '@typescript-eslint/explicit-function-return-type': 'off' }
   }
 )

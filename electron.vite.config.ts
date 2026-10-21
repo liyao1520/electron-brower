@@ -4,8 +4,12 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
-  main: {},
-  preload: {},
+  main: {
+    build: { externalizeDeps: { exclude: ['@electron-brower/typed-ipc'] } }
+  },
+  preload: {
+    build: { externalizeDeps: { exclude: ['@electron-brower/typed-ipc'] } }
+  },
   renderer: {
     resolve: {
       alias: {

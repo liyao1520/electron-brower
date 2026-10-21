@@ -39,8 +39,7 @@ jobs:
           cache: pnpm
           cache-dependency-path: pnpm-lock.yaml
 
-      - name: Prepare GitHub update configuration
-        id: configure
+      - name: Validate version
         run: node .github/scripts/prepare-build.mjs
         env:
           REQUIRE_RELEASE_TAG: ${{ inputs.release }}
@@ -54,26 +53,17 @@ jobs:
       - name: Typecheck and build
         run: pnpm build
 
-      - name: Test updater lifecycle
-        run: pnpm test
-
       - name: Package Windows installer
-        run: pnpm exec electron-builder --win nsis --x64 --publish never --config "${{ steps.configure.outputs.config-path }}"
+        run: pnpm exec electron-builder --win nsis --x64 --publish never
         env:
           WIN_CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
           WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
 
-      - name: Collect release assets
-        id: assets
-        run: node .github/scripts/collect-release.mjs
-        env:
-          UPDATE_CHANNEL: ${{ steps.configure.outputs.channel }}
-
-      - name: Upload installer and update metadata
+      - name: Upload installer
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         with:
           name: windows-x64
-          path: ${{ steps.assets.outputs.path }}
+          path: dist/*-setup.exe
           if-no-files-found: error
           compression-level: 0
           retention-days: 14
